@@ -21,6 +21,7 @@ RUN yum install java-1.8.0-openjdk.x86_64 -y
 RUN rpm -Uvh http://repo.rundeck.org/latest.rpm
 RUN yum install rundeck -y
 VOLUME /root/rundek /etc/rundeck
+RUN chmod 777 -R /etc/rundeck
 ENTRYPOINT /usr/sbin/init
 CMD systemctl start rundeck && systemctl enable rundeck
 EXPOSE 4440
