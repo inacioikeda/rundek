@@ -1,4 +1,6 @@
+
 FROM openshift/base-centos7:latest
+MAINTAINER inacio.ikeda@gmail.com
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
 rm -f /lib/systemd/system/multi-user.target.wants/*;\
@@ -14,5 +16,6 @@ RUN yum install java-1.8.0-openjdk.x86_64 -y
 RUN rpm -Uvh http://repo.rundeck.org/latest.rpm
 RUN yum install rundeck -y
 VOLUME /root/rundek /etc/rundeck
+CMD /usr/sbin/init
 CMD systemctl start rundeck && systemctl enable rundeck
 EXPOSE 4440
