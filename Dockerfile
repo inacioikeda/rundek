@@ -11,7 +11,7 @@ rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
 rm -f /lib/systemd/system/basic.target.wants/*;\
 rm -f /lib/systemd/system/anaconda.target.wants/*;
 
-RUN  useradd admin && echo "admin:admin" | chpasswd && adduser admin sudo
+RUN  adduser admin && echo "admin:admin" | passwd && adduser admin sudo
 USER admin
 
 RUN yum update -y; yum install wget -y; yum clean all
