@@ -1,0 +1,32 @@
+# Definir o Workdir
+workdir: "{{ ansible_user_dir }}/rundek"
+
+# Usuario do github
+git_user: inacioikeda
+
+# Repositório do github
+git_repo: rundek
+
+# Opcional
+clone_modules: true
+
+# IP e Porta do Openshift
+openshift: 192.168.0.13:8443
+
+# Customização do domínio do projeto
+domain: rundek.192.168.0.13.nip.io
+
+# Usuário do Openshift
+username: developer
+password: developer
+
+# Usuário Admin do Openshift
+admin_user: system:admin
+admin_pw: "''"
+
+# Nome do projeto a ser criado no Openshift
+project_name: rundek
+
+openshift_deploy:
+  - name: rundek
+    project: rundek

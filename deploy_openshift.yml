@@ -1,0 +1,92 @@
+---
+   - name: Realizando Deploy no Openshift
+     hosts: dev
+     user: root
+     become: yes
+     become_method: sudo
+     vars_files:
+        - vars.yml
+     tasks:
+        - name: Apagar antigos arquivos
+          file:
+             path: "{{ workdir }}"
+             state: absent
+
+        - name: Download da Imagem do Github
+          shell: "git clone https://github.com/{{ git_user }}/{{ git_repo }}  && cd {{ git_repo }}"
+          tags:
+            - git
+
+        - name: Criar Workdir
+          file:
+             path: "{{ workdir }}"
+             state: directory
+
+#        - name: Checkout source no Git
+#          git:
+#             repo: "https://github.com/inacioikeda/{{ item.name }}"
+#             dest: "{{ workdir }}/{{ item.name }}"
+#             update: yes
+#          with_items: "{{ openshift_deploy }}"
+#          when: "{{ clone_modules }}"
+#          tags:
+#             - git
+
+        - name: Logon para o Openshift
+          shell: "oc login --insecure-skip-tls-verify=true -u {{ username }} -p {{ password }}  {{ openshift }}"
+          tags:
+            - openshift
+
+        - name: Criando novo projeto no Openshift
+          shell: "oc new-project {{ project_name }}"
+          register: command_result
+          failed_when: "'exists' not in command_result.stderr and command_result.rc != 0"
+          changed_when: "'exists' not in command_result.stderr"
+          tags:
+             - openshift
+
+        - name: Definir o projeto a ser usado no Openshift
+          shell: "oc project {{ project_name }}"
+          tags:
+             - openshift
+
+        - name: Criar aplicação em Openshift a partir da imagem criada anteriormente
+          shell: "oc new-app {{ item.name }} -l app={{ item.name }}"
+#          shell: "oc new-app openshift/base-centos7"
+          register: command_result
+          with_items: "{{ openshift_deploy }}"
+          failed_when: "'exists' not in command_result.stderr and command_result.rc != 0"
+          changed_when: "'exists' not in command_result.stderr"
+          tags:
+             - openshift
+
+        - name: Criando novo build no Openshift
+          shell: "oc new-build --binary --name={{ item.name }} -l app={{ item.name }}"
+          register: command_result
+          with_items: "{{ openshift_deploy }}"
+          failed_when: "'exists' not in command_result.stderr"
+#          changed_when: "'exists' not in commmand_result.stderr"
+          tags:
+             - openshift
+
+        - name: Build e Deploy Openshift Image a partir do Source
+          shell: "oc start-build {{ item.name }} --from-dir={{ workdir }} --follow"
+          with_items: "{{ openshift_deploy }}"
+          tags:
+             - openshift
+             - build
+
+        - name: Expose da aplicação
+          shell: "oc expose service {{ item.name }} --hostname={{ item.name }}-{{ project_name }}.{{ domain }}"
+          register: command_result
+          with_items: "{{ openshift_deploy }}"
+          failed_when: "'exists' not in command_result.stderr and command_result.rc != 0"
+          changed_when: "'exists' not in command_result.stderr"
+          tags:
+             - openshift
+
+        - name: Usar o Projeto Openshift Rundek
+          shell: "oc project {{ project_name }}"
+          tags:
+             - openshift
+

@@ -1,0 +1,172 @@
+{
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "rundek",
+                "labels": {
+                    "app": "rundek"
+                }
+            },
+            "spec": {
+                "tags": [
+                    {
+                        "name": "latest",
+                        "from": {
+                            "kind": "DockerImage",
+                            "name": "ikeda/rundek:latest"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "rundek",
+                "labels": {
+                    "app": "rundek"
+                }
+            },
+            "spec": {
+                "triggers": [
+                    {
+                        "type": "GitHub",
+                        "github": {
+                            "secret": "ywzgOVL7kgE1Rojvej__"
+                        }
+                    },
+                    {
+                        "type": "Generic",
+                        "generic": {
+                            "secret": "OPZFTjXJtg3lR72FTDCD"
+                        }
+                    }
+                ],
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "https://github.com/inacioikeda/rundek"
+                    }
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "namespace": "openshift",
+                            "name": "rundek:latest"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "rundek:latest"
+                    }
+                }
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "rundek",
+                "labels": {
+                    "app": "rundek"
+                }
+            },
+            "spec": {
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "rundek"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "rundek:latest"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "app": "rundek",
+                    "deploymentconfig": "rundek"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "rundek",
+                            "deploymentconfig": "rundek"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "rundek",
+                                "image": "ikeda/rundek",
+                                "ports": [
+                                    {
+                                        "containerPort": 4440,
+                                        "protocol": "TCP"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "rundek",
+                "labels": {
+                    "app": "rundek"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "4440-tcp",
+                        "protocol": "TCP",
+                        "port": 4440,
+                        "targetPort": 4440
+                    }
+                ],
+                "selector": {
+                    "app": "rundek",
+                    "deploymentconfig": "rundek"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "rundek",
+                "labels": {
+                    "app": "rundek"
+                }
+            },
+            "spec": {
+                "host": "rundek.192.168.0.13.nip.io",
+                "to": {
+                    "kind": "Service",
+                    "name": "rundek"
+                },
+                "port": {
+                    "targetPort": "4440-tcp"
+                }
+            }
+        }
