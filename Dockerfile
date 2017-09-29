@@ -12,7 +12,7 @@ rm -f /lib/systemd/system/basic.target.wants/*;\
 rm -f /lib/systemd/system/anaconda.target.wants/*;
 
 RUN echo "root:root" | chpasswd
-RUN adduser rundeck && echo "rundeck:rundeck" | chpasswd
+RUN adduser rundeck
 
 RUN yum update -y; yum install wget -y; yum clean all; rm -rf /var/cache/yum
 RUN yum install java-1.8.0-openjdk.x86_64 -y
