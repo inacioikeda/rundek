@@ -11,8 +11,8 @@ rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
 rm -f /lib/systemd/system/basic.target.wants/*;\
 rm -f /lib/systemd/system/anaconda.target.wants/*;
 
-RUN  adduser admin && echo "admin:admin" | passwd && adduser admin sudo
-USER admin
+RUN echo "root:root" | chpasswd
+USER root
 
 RUN yum update -y; yum install wget -y; yum clean all
 RUN yum install java-1.8.0-openjdk.x86_64 -y
